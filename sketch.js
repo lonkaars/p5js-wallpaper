@@ -6,16 +6,14 @@ var maxLife = 120; // hoe lang te particles rondhangen in frames, wallpaper engi
 var TaskBarWidth = 32; // hoogte/breedte van taakbalk in pixels (mestal 40, 32, of 50 ofzo maar in ieder geval een even getal)
 var MaxBlockWidth = 200; // max hoogte/breedte van de taakbalk highlighter
 let currentTaskBarColor; // slaat de kleur op van de highlighter als GayMode aan staat
-var GayMode = false // jij varken
-let TaskBarPos = 'left' // left of bottom
+var GayMode = false; // jij varken
+let TaskBarPos = 'left'; // left of bottom
 let GayVal; // slaat de huidige kleur van alle particles op als GayMode aan staat
 let GayBGVal; // slaat de huidige achtergrond kleur op als GayMode aan staat
-let splash;
-let splashiespash = false
-let maxSplashsize = 300
-var startSubParticleSize = 50
-let splashes = [];
-let splashCount = 0;
+let maxSplashsize = 300; // grootste grootte van de rimpelingen van de explosies
+var startSubParticleSize = 50; // begingrootte van de vuurwerkballetjes
+let splashes = []; // de variabele die alle splashes opslaat, nog steeds niet aanzitten
+let splashCount = 0; // variabele die het aantal on-screen vuurwerkdingens opslaat, weer niet aanzitten
 
 class SubPlashParticle {
     constructor(x, y, f) {
@@ -26,7 +24,11 @@ class SubPlashParticle {
         this.vx = Math.random() * (f * 2) - f
         this.vy = Math.random() * (f * 2) - f
         this.life = frameCount
-        this.color = random(100, 250)
+        if(GayMode == true){
+            this.color = hslToRgb(random(0, 1), 0.5, 0.5)
+        } else {
+            this.color = random(100, 250)
+        }
     }
     move() {
         this.x = this.x + this.vx
@@ -196,6 +198,7 @@ class Particle {
         this.vx = vx
         this.vy = vy
         this.life = frameCount
+        this.size = 10;
     }
     move() {
         this.x = this.x + this.vx
@@ -204,11 +207,13 @@ class Particle {
     draw() {
         if (GayMode == true) {
             fill(GayVal[0], GayVal[1], GayVal[2], (map(frameCount - this.life, 0, maxLife, 255, 0)))
+            this.size = 15
         } else {
             fill(255, 255, 255, (map(frameCount - this.life, 0, maxLife, 255, 0)))
+            this.size = 10;
         }
         noStroke()
-        ellipse(this.x, this.y, 10, 10)
+        ellipse(this.x, this.y, this.size)
     }
     interact(mX, mY) {
         this.vx = this.vx + (((mouseX - mX) / 3) * (map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 1, 0) * 0.25)) * 0.98
@@ -224,11 +229,11 @@ class Particle {
         if (dist(this.x, this.y, mouseX, mouseY) <= maxDist) {
             if (GayMode == true) {
                 stroke(GayVal[0], GayVal[1], GayVal[2], map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 100, 0) * map(frameCount - this.life, 0, maxLife, 1, 0))
+                strokeWeight(4)
             } else {
                 stroke(255, 255, 255, map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 100, 0) * map(frameCount - this.life, 0, maxLife, 1, 0))
+                strokeWeight(2)
             }
-
-            strokeWeight(2)
             line(mouseX, mouseY, this.x, this.y)
         }
     }
