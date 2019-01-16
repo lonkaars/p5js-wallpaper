@@ -10,6 +10,79 @@ var GayMode = false // jij varken
 let TaskBarPos = 'left' // left of bottom
 let GayVal; // slaat de huidige kleur van alle particles op als GayMode aan staat
 let GayBGVal; // slaat de huidige achtergrond kleur op als GayMode aan staat
+let splash;
+let splashiespash = false
+let maxSplashsize = 300
+var startSubParticleSize = 50
+let splashes = [];
+let splashCount = 0;
+
+class SubPlashParticle {
+    constructor(x, y, f) {
+        this.x = x
+        this.y = y
+        this.ox = x
+        this.oy = y
+        this.vx = Math.random() * (f * 2) - f
+        this.vy = Math.random() * (f * 2) - f
+        this.life = frameCount
+        this.color = random(100, 250)
+    }
+    move() {
+        this.x = this.x + this.vx
+        this.y = this.y + this.vy
+        this.vx = this.vx / 1.03
+        this.vy = this.vy / 1.03
+    }
+    draw(maxLife) {
+        noStroke()
+        fill(this.color)
+        ellipse(this.x, this.y, map(constrain(dist(this.x, this.y, this.ox, this.oy) * 3, 0, maxDist), 0, maxDist, startSubParticleSize, 0) * map(constrain(frameCount - this.life, 0, maxLife), 0, maxLife, 1, 0))
+    }
+}
+class Splash {
+    constructor(x, y) {
+        this.maxLife = 60
+        this.life = frameCount
+        this.x = x
+        this.y = y
+        this.subParticleCount = 15
+        this.subparticles = []
+        this.circle = {
+            "bornAt": frameCount,
+            "currentSize": 0
+        }
+        this.expo = 1
+    }
+    getSubParticles() {
+        for (let i = 0; i < this.subParticleCount; i++) {
+            this.subparticles[i] = new SubPlashParticle(this.x, this.y, 6)
+        }
+    }
+    drawSubParticles() {
+        for (let i = 0; i < this.subParticleCount; i++) {
+            this.subparticles[i].move()
+            this.subparticles[i].draw(this.maxLife)
+        }
+    }
+    drawCircle() {
+        if (frameCount - this.circle.bornAt <= this.maxLife) {
+            noFill()
+            stroke(255, 255, 255, map(frameCount - this.circle.bornAt, 0, this.maxLife, 255, 0) * 0.7)
+            strokeWeight(1)
+
+            this.expo = this.expo / 1.07
+            ellipse(this.x, this.y, map(this.expo, 1, 0, 0, maxSplashsize))
+        }
+    }
+    destroy(i) {
+        if (frameCount - this.life >= this.maxLife) {
+            this.subparticles = []
+            splashCount--
+            splashes.splice(i, 1)
+        }
+    }
+}
 
 function hslToRgb(h, s, l) {
     var r, g, b;
@@ -44,6 +117,13 @@ function setup() {
     maxAcc = Math.round(Math.sqrt(width ^ 2 + height ^ 2)) + 1
 }
 
+function mouseClicked() {
+    tempSplash = new Splash(mouseX, mouseY)
+    tempSplash.getSubParticles()
+    splashes.push(tempSplash)
+    splashCount++
+}
+
 function draw() {
     GayVal = hslToRgb((frameCount % 120) / 120, 0.5, 0.5)
     GayBGVal = hslToRgb(((frameCount + 180) % 120) / 120, 0.35, 0.07)
@@ -57,13 +137,14 @@ function draw() {
         tempPart = new Particle(mouseX, mouseY, (mouseX - mX) * 0.8, (mouseY - mY) * 0.8)
         particles.push(tempPart)
         particleCount++
-    } else {
-        if (frameCount % 5 == 0) {
-            tempPart = new Particle(mouseX, mouseY, random(-3, 3), random(-3, 3))
-            particles.push(tempPart)
-            particleCount++
-        }
     }
+    // else {
+    //     if (frameCount % 5 == 0) {
+    //         tempPart = new Particle(mouseX, mouseY, random(-3, 3), random(-3, 3))
+    //         particles.push(tempPart)
+    //         particleCount++
+    //     }
+    // }
     for (let i = 0; i < particleCount; i++) {
         particles[i].move()
         particles[i].interact(mX, mY)
@@ -97,6 +178,11 @@ function draw() {
             rect(mouseX - map(mouseY, height - TaskBarWidth, height, 0, MaxBlockWidth / 2), height - TaskBarWidth, map(mouseY, height - TaskBarWidth, height, 0, MaxBlockWidth), TaskBarWidth)
             //rect(x, y, w, h)
         }
+    }
+    for (let i = 0; i < splashCount; i++) {
+        splashes[i].drawCircle()
+        splashes[i].drawSubParticles()
+        splashes[i].destroy()
     }
 }
 
