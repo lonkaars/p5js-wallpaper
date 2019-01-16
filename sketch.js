@@ -122,6 +122,9 @@ function mouseClicked() {
     tempSplash.getSubParticles()
     splashes.push(tempSplash)
     splashCount++
+    for (let i = 0; i < particleCount; i++) {
+        particles[i].bomb()
+    }
 }
 
 function draw() {
@@ -241,5 +244,9 @@ class Particle {
         stroke(0, 0, 255)
         strokeWeight(2)
         line(this.x, this.y, this.x + map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 1, 0), this.y)
+    }
+    bomb() {
+        this.vx = this.vx + (((this.x - mouseX) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
+        this.vy = this.vy + (((this.y - mouseY) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
     }
 }
