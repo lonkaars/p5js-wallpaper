@@ -24,11 +24,7 @@ class SubPlashParticle {
         this.vx = Math.random() * (f * 2) - f
         this.vy = Math.random() * (f * 2) - f
         this.life = frameCount
-        if(GayMode == true){
-            this.color = hslToRgb(random(0, 1), 0.5, 0.5)
-        } else {
-            this.color = random(100, 250)
-        }
+        this.color = (GayMode == true) ? hslToRgb(random(0, 1), 0.5, 0.5) : random(100, 250)
     }
     move() {
         this.x = this.x + this.vx
@@ -42,6 +38,7 @@ class SubPlashParticle {
         ellipse(this.x, this.y, map(constrain(dist(this.x, this.y, this.ox, this.oy) * 3, 0, maxDist), 0, maxDist, startSubParticleSize, 0) * map(constrain(frameCount - this.life, 0, maxLife), 0, maxLife, 1, 0))
     }
 }
+
 class Splash {
     constructor(x, y) {
         this.maxLife = 60
@@ -130,6 +127,7 @@ function mouseClicked() {
 }
 
 function draw() {
+    noCursor();
     GayVal = hslToRgb((frameCount % 120) / 120, 0.5, 0.5)
     GayBGVal = hslToRgb(((frameCount + 180) % 120) / 120, 0.35, 0.07)
     if (GayMode == true) {
@@ -193,11 +191,11 @@ function draw() {
 
 class Particle {
     constructor(x, y, vx, vy) {
-        this.x = x
-        this.y = y
-        this.vx = vx
-        this.vy = vy
-        this.life = frameCount
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = frameCount;
         this.size = 10;
     }
     move() {
@@ -207,11 +205,10 @@ class Particle {
     draw() {
         if (GayMode == true) {
             fill(GayVal[0], GayVal[1], GayVal[2], (map(frameCount - this.life, 0, maxLife, 255, 0)))
-            this.size = 15
         } else {
             fill(255, 255, 255, (map(frameCount - this.life, 0, maxLife, 255, 0)))
-            this.size = 10;
         }
+        this.size = (GayMode) ? 15 : 10
         noStroke()
         ellipse(this.x, this.y, this.size)
     }
