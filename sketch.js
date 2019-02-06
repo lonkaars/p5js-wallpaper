@@ -2,7 +2,7 @@ var maxDist = 500; // grootste afstand dat particles nog aangetrokken worden doo
 let particleCount = 0; // houdt het aantal particles bij, niet aanzitten
 let particles = []; // de variabele die alle particles opslaat, ook niet aanzitten
 let maxAcc; // variabele die de snelst mogelijke snelheid opslaat sqrt(width^2 + height^2), kun je niet veranderen dus probeer het niet
-var maxLife = 99999; // hoe lang te particles rondhangen in frames, wallpaper engine heeft een default van 30fps maar kan tot 60 gaan.
+var maxLife = 300; // hoe lang te particles rondhangen in frames, wallpaper engine heeft een default van 30fps maar kan tot 60 gaan.
 var TaskBarWidth = 32; // hoogte/breedte van taakbalk in pixels (mestal 40, 32, of 50 ofzo maar in ieder geval een even getal)
 var MaxBlockWidth = 200; // max hoogte/breedte van de taakbalk highlighter
 let currentTaskBarColor; // slaat de kleur op van de highlighter als GayMode aan staat
@@ -15,6 +15,8 @@ var startSubParticleSize = 50; // begingrootte van de vuurwerkballetjes
 let splashes = []; // de variabele die alle splashes opslaat, nog steeds niet aanzitten
 let splashCount = 0; // variabele die het aantal on-screen vuurwerkdingens opslaat, weer niet aanzitten
 var gravityConstant = 0.5 // zwaartekrachtsconstante
+var outsideThreshold = 50 // hoever de particles buiten de doos kunnen gaan bij bounce() in px
+var bounceBackCoefficient = 0.5 // hoeveel kracht de particles overhouden na tegen de muur aanstoten.
 
 class SubPlashParticle {
     constructor(x, y, f) {
@@ -160,7 +162,8 @@ function draw() {
         particles[i].draw()
         particles[i].line()
         // particles[i].debug(mX, mY)
-        particles[i].destroy(i)
+        // particles[i].destroy(i)
+        particles[i].bounce(i)
     }
     mX = mouseX
     mY = mouseY
@@ -252,6 +255,8 @@ class Particle {
         stroke(0, 0, 255)
         strokeWeight(2)
         line(this.x, this.y, this.x + map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 1, 0), this.y)
+
+        console.log(`${this.vx}, ${this.vy}`)
     }
     bomb() {
         this.vx = this.vx + (((this.x - mouseX) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
@@ -259,5 +264,21 @@ class Particle {
     }
     gravity() {
         this.vy = this.vy + gravityConstant
+    }
+    bounce(i) {
+        if(this.x >= width + outsideThreshold || this.y >= height + outsideThreshold || this.x <= 0 - outsideThreshold || this.y <= 0 - outsideThreshold ){
+            particles.splice(i, 1)
+            particleCount--
+        }
+        if (this.x >= width || this.x <= 0) {
+            this.vx = this.vx * -bounceBackCoefficient
+        }
+        if (this.y >= height || this.y <= 0) {
+            this.vy = this.vy * -bounceBackCoefficient
+        }
+        if(frameCount - this.life >= maxLife){
+            particles.splice(i, 1)
+            particleCount--
+        }
     }
 }
