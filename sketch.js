@@ -39,7 +39,7 @@ class SubPlashParticle {
         ellipse(this.x, this.y, map(constrain(dist(this.x, this.y, this.ox, this.oy) * 3, 0, maxDist), 0, maxDist, startSubParticleSize, 0) * map(constrain(frameCount - this.life, 0, maxLife), 0, maxLife, 1, 0))
     }
     gravity() {
-        this.vy = this.vy + gravityConstant
+        this.vy = this.vy + ( gravityConstant / 2 )
     }
 }
 
