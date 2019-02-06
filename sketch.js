@@ -2,7 +2,7 @@ var maxDist = 500; // grootste afstand dat particles nog aangetrokken worden doo
 let particleCount = 0; // houdt het aantal particles bij, niet aanzitten
 let particles = []; // de variabele die alle particles opslaat, ook niet aanzitten
 let maxAcc; // variabele die de snelst mogelijke snelheid opslaat sqrt(width^2 + height^2), kun je niet veranderen dus probeer het niet
-var maxLife = 120; // hoe lang te particles rondhangen in frames, wallpaper engine heeft een default van 30fps maar kan tot 60 gaan.
+var maxLife = 99999; // hoe lang te particles rondhangen in frames, wallpaper engine heeft een default van 30fps maar kan tot 60 gaan.
 var TaskBarWidth = 32; // hoogte/breedte van taakbalk in pixels (mestal 40, 32, of 50 ofzo maar in ieder geval een even getal)
 var MaxBlockWidth = 200; // max hoogte/breedte van de taakbalk highlighter
 let currentTaskBarColor; // slaat de kleur op van de highlighter als GayMode aan staat
@@ -14,6 +14,7 @@ let maxSplashsize = 300; // grootste grootte van de rimpelingen van de explosies
 var startSubParticleSize = 50; // begingrootte van de vuurwerkballetjes
 let splashes = []; // de variabele die alle splashes opslaat, nog steeds niet aanzitten
 let splashCount = 0; // variabele die het aantal on-screen vuurwerkdingens opslaat, weer niet aanzitten
+var gravityConstant = 0.5 // zwaartekrachtsconstante
 
 class SubPlashParticle {
     constructor(x, y, f) {
@@ -36,6 +37,9 @@ class SubPlashParticle {
         noStroke()
         fill(this.color)
         ellipse(this.x, this.y, map(constrain(dist(this.x, this.y, this.ox, this.oy) * 3, 0, maxDist), 0, maxDist, startSubParticleSize, 0) * map(constrain(frameCount - this.life, 0, maxLife), 0, maxLife, 1, 0))
+    }
+    gravity() {
+        this.vy = this.vy + gravityConstant
     }
 }
 
@@ -61,6 +65,7 @@ class Splash {
     drawSubParticles() {
         for (let i = 0; i < this.subParticleCount; i++) {
             this.subparticles[i].move()
+            this.subparticles[i].gravity()
             this.subparticles[i].draw(this.maxLife)
         }
     }
@@ -150,6 +155,7 @@ function draw() {
     // }
     for (let i = 0; i < particleCount; i++) {
         particles[i].move()
+        particles[i].gravity()
         particles[i].interact(mX, mY)
         particles[i].draw()
         particles[i].line()
@@ -250,5 +256,8 @@ class Particle {
     bomb() {
         this.vx = this.vx + (((this.x - mouseX) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
         this.vy = this.vy + (((this.y - mouseY) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
+    }
+    gravity() {
+        this.vy = this.vy + gravityConstant
     }
 }
