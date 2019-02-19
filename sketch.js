@@ -17,6 +17,17 @@ let splashCount = 0; // variabele die het aantal on-screen vuurwerkdingens opsla
 var gravityConstant = 0.5 // zwaartekrachtsconstante
 var outsideThreshold = 50 // hoever de particles buiten de doos kunnen gaan bij bounce() in px
 var bounceBackCoefficient = 0.5 // hoeveel kracht de particles overhouden na tegen de muur aanstoten.
+var alwaysparticlesFrameCount = 5 // om de hoeveel frames er een random particle wordt gemaakt als de muis niet beweegt
+
+// behavior vars
+var gravity = false;
+var interaction = true;
+var showparticles = true;
+var lines = true;
+var debugmode = false;
+var bouncy = false;
+var destroyoffscreen = false;
+var alwaysparticles = false;
 
 class SubPlashParticle {
     constructor(x, y, f) {
@@ -41,7 +52,7 @@ class SubPlashParticle {
         ellipse(this.x, this.y, map(constrain(dist(this.x, this.y, this.ox, this.oy) * 3, 0, maxDist), 0, maxDist, startSubParticleSize, 0) * map(constrain(frameCount - this.life, 0, maxLife), 0, maxLife, 1, 0))
     }
     gravity() {
-        this.vy = this.vy + ( gravityConstant / 2 )
+        this.vy = this.vy + (gravityConstant / 2)
     }
 }
 
@@ -67,7 +78,9 @@ class Splash {
     drawSubParticles() {
         for (let i = 0; i < this.subParticleCount; i++) {
             this.subparticles[i].move()
-            this.subparticles[i].gravity()
+            if (gravity) {
+                this.subparticles[i].gravity()
+            }
             this.subparticles[i].draw(this.maxLife)
         }
     }
@@ -147,23 +160,38 @@ function draw() {
         tempPart = new Particle(mouseX, mouseY, (mouseX - mX) * 0.8, (mouseY - mY) * 0.8)
         particles.push(tempPart)
         particleCount++
+    } else {
+        if (alwaysparticles) {
+            if (frameCount % alwaysparticlesFrameCount == 0) {
+                tempPart = new Particle(mouseX, mouseY, random(-3, 3), random(-3, 3))
+                particles.push(tempPart)
+                particleCount++
+            }
+        }
     }
-    // else {
-    //     if (frameCount % 5 == 0) {
-    //         tempPart = new Particle(mouseX, mouseY, random(-3, 3), random(-3, 3))
-    //         particles.push(tempPart)
-    //         particleCount++
-    //     }
-    // }
     for (let i = 0; i < particleCount; i++) {
         particles[i].move()
-        particles[i].gravity()
-        particles[i].interact(mX, mY)
-        particles[i].draw()
-        particles[i].line()
-        // particles[i].debug(mX, mY)
-        // particles[i].destroy(i)
-        particles[i].bounce(i)
+        if (gravity) {
+            particles[i].gravity()
+        }
+        if (interaction) {
+            particles[i].interact(mX, mY)
+        }
+        if (showparticles) {
+            particles[i].draw()
+        }
+        if (lines) {
+            particles[i].line()
+        }
+        if (debugmode) {
+            particles[i].debug(mX, mY)
+        }
+        if (bouncy) {
+            particles[i].bounce(i)
+        }
+        if (destroyoffscreen) {
+            particles[i].destroy(i)
+        }
     }
     mX = mouseX
     mY = mouseY
@@ -193,8 +221,12 @@ function draw() {
     }
     for (let i = 0; i < splashCount; i++) {
         splashes[i].drawCircle()
-        splashes[i].drawSubParticles()
-        splashes[i].destroy()
+        if (showparticles) {
+            splashes[i].drawSubParticles()
+        }
+        if (destroyoffscreen) {
+            splashes[i].destroy()
+        }
     }
 }
 
@@ -206,6 +238,8 @@ class Particle {
         this.vy = vy;
         this.life = frameCount;
         this.size = 10;
+        this.xbo = 0;
+        this.ybo = 0;
     }
     move() {
         this.x = this.x + this.vx
@@ -256,7 +290,7 @@ class Particle {
         strokeWeight(2)
         line(this.x, this.y, this.x + map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist), 0, maxDist, 1, 0), this.y)
 
-        console.log(`${this.vx}, ${this.vy}`)
+        //console.log(`${this.vx}, ${this.vy}`)
     }
     bomb() {
         this.vx = this.vx + (((this.x - mouseX) * 0.2) * map(constrain(dist(this.x, this.y, mouseX, mouseY), 0, maxDist / 2), 0, maxDist / 2, 1, 0))
@@ -266,19 +300,33 @@ class Particle {
         this.vy = this.vy + gravityConstant
     }
     bounce(i) {
-        if(this.x >= width + outsideThreshold || this.y >= height + outsideThreshold || this.x <= 0 - outsideThreshold || this.y <= 0 - outsideThreshold ){
+        /* if(this.x >= width + outsideThreshold || this.y >= height + outsideThreshold || this.x <= 0 - outsideThreshold || this.y <= 0 - outsideThreshold ){
             particles.splice(i, 1)
             particleCount--
-        }
+        } */
         if (this.x >= width || this.x <= 0) {
-            this.vx = this.vx * -bounceBackCoefficient
+            if (this.xbo == 0) {
+                this.vx = this.vx * -bounceBackCoefficient
+            } else if (this.xbo >= 1) {
+                particles.splice(i, 1)
+                particleCount--
+            }
+            this.xbo++
         }
         if (this.y >= height || this.y <= 0) {
-            this.vy = this.vy * -bounceBackCoefficient
+            if (this.ybo == 0) {
+                this.vy = this.vy * -bounceBackCoefficient
+            } else if (this.ybo >= 1) {
+                particles.splice(i, 1)
+                particleCount--
+            }
+            this.ybo++
         }
-        if(frameCount - this.life >= maxLife){
+        if (frameCount - this.life >= maxLife) {
             particles.splice(i, 1)
             particleCount--
         }
+        this.xbo = 0;
+        this.ybo = 0;
     }
 }
