@@ -26,7 +26,7 @@ var showparticles = true;
 var lines = true;
 var debugmode = false;
 var bouncy = false;
-var destroyoffscreen = false;
+var destroyoffscreen = true;
 var alwaysparticles = false;
 
 class SubPlashParticle {
